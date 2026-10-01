@@ -1,5 +1,5 @@
 // Import necessary functions and objects
-import { loadGLTF } from "/Labuan-Ar/libs/loader.js";
+import { loadGLTF } from "../libs/loader.js";
 const THREE = window.MINDAR.IMAGE.THREE;
 
 // --- REPOSITORY DATA MODEL STORAGE ---
@@ -23,9 +23,9 @@ let isAudioPlaying = false;
 let buildingModelMesh = null;
 let automaticPopupTriggered = false; 
 
-// Instantiating standard HTML5 Audio components natively
-const audioEN = new Audio('/Labuan-Ar/assets/audio/englishUmskal.mp3');
-const audioMS = new Audio('/Labuan-Ar/assets/audio/malayUmskal.mp3');
+// Instantiating standard HTML5 Audio components natively (Relative Paths)
+const audioEN = new Audio('./assets/audio/englishUmskal.mp3');
+const audioMS = new Audio('./assets/audio/malayUmskal.mp3');
 
 // Mouse Drag State Variables for Rotation Engine
 let isDragging = false;
@@ -34,8 +34,8 @@ let previousMousePosition = { x: 0 };
 const initializeMindAR = () => {
   return new window.MINDAR.IMAGE.MindARThree({
     container: document.getElementById('ar-container'),
-    imageTargetSrc: '/Labuan-Ar/assets/targets/umskal.mind',
-    filterMinCF: 0.001, // Smoothens tracking jitter
+    imageTargetSrc: './assets/targets/umskal.mind',
+    filterMinCF: 0.001,
     filterBeta: 1000
   });
 };
@@ -50,7 +50,7 @@ const setupLighting = (scene) => {
 };
 
 const loadBuildingModel = async () => {
-  const building = await loadGLTF('/Labuan-Ar/assets/models/test2/scene.gltf');
+  const building = await loadGLTF('./assets/models/test2/scene.gltf');
   
   building.scene.scale.set(0.1, 0.1, 0.1);
   building.scene.position.set(0, 0, 0);
@@ -65,10 +65,10 @@ const openInfoCard = (id) => {
 
   document.getElementById('card-title').innerText = target.name;
   document.getElementById('card-meta').innerHTML = `
-      🏛️ <b>Campus:</b> ${target.name}<br>
-      ⏰ <b>Hours:</b> ${target.hours}<br>
-      🎫 <b>Fee:</b> ${target.fee}<br>
-      📞 <b>Inquiries:</b> ${target.contact}
+      ??? <b>Campus:</b> ${target.name}<br>
+      ? <b>Hours:</b> ${target.hours}<br>
+      ?? <b>Fee:</b> ${target.fee}<br>
+      ?? <b>Inquiries:</b> ${target.contact}
   `;
   document.getElementById('card-folklore').innerText = target[currentLanguage].folklore;
   document.getElementById('info-card').style.display = 'block';
@@ -78,7 +78,7 @@ const stopAllAudio = () => {
   audioEN.pause(); audioEN.currentTime = 0;
   audioMS.pause(); audioMS.currentTime = 0;
   isAudioPlaying = false;
-  document.getElementById('narrator-btn').innerHTML = `<span id="narrator-icon" style="color: #721c24;">📜</span> Audio Lore`;
+  document.getElementById('narrator-btn').innerHTML = `<span id="narrator-icon" style="color: #721c24;">??</span> Audio Lore`;
 };
 
 // Global Execution Thread Loop
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isAudioPlaying) {
       activeAudio.play().catch(err => console.warn("Audio Context blocked until interaction:", err));
       isAudioPlaying = true;
-      document.getElementById('narrator-btn').innerHTML = `<span id="narrator-icon" style="color: #721c24;">🛑</span> Stop Audio`;
+      document.getElementById('narrator-btn').innerHTML = `<span id="narrator-icon" style="color: #721c24;">??</span> Stop Audio`;
       activeAudio.onended = () => stopAllAudio();
     } else {
       stopAllAudio();
@@ -136,17 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const mindarThree = initializeMindAR();
     const { renderer, scene, camera } = mindarThree;
 
-    // Make WebGL canvas clear buffer completely transparent so background camera shows
     renderer.setClearColor(0x000000, 0); 
 
     setupLighting(scene);
     buildingModelMesh = await loadBuildingModel();
     
-    // Target 0 references the initial compilation entry in your .mind dictionary compiled profile
     const anchor = mindarThree.addAnchor(0); 
     anchor.group.add(buildingModelMesh);
 
-    // CRITICAL FIX: Initialize and wake up camera feed stream BEFORE activating trackers
     await mindarThree.start();
 
     // --- AUTOMATIC TOURIST UI TRIGGER EVENTS ---
